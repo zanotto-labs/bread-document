@@ -3,31 +3,33 @@
 
 (ns bin.bread-document
   (:require [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [babashka.cli :as cli]))
 
 (defn format-message [message]
   (let [date-str (str (java.time.LocalDate/now))
-        jira-card (get message :jira-card "")
-        content (get message :content "")]
-    (str/join " - " [date-str message])))
+        jira-card (get message :jira "")
+        message   (get message :message "")]
+    (str/join " - " [date-str jira-card message])))
 
-(defn add-crumb [message]
+(defn add-crumb [{:keys [opts] :as opts}]
+  ;;(assoc message :fn :add-crumb)
+  (println opts)
   (try
     (with-open [file (io/writer "document.md" :append true)]
-      (.write file (str "\n- " (format-message message))))
+      (.write file (str "\n- " (format-message opts))))
     (println "Crumb added successfully!")
     (catch Exception e
       (println "Error adding crumb:" (.getMessage e))))
   )
 
+(def table
+  [{:cmds ["add" "crumb"]   :fn add-crumb   :args->opts [:message :jira]}
+;;   {:cmds []                :fn help}
+])
+
 (defn -main [& args]
-  (cond
-    (= (first args) "new")
-    (cond
-      (= (second args) "crumb")
-      (apply add-crumb (rest (rest args)))
-      :else
-      (println "Unknown sub-command.")))
-  )
+  ;;(prn (cli/parse-opts *command-line-args* {:spec cli-options}))
+  (cli/dispatch table args))
 
 (apply -main *command-line-args*)
