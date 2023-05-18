@@ -2,14 +2,19 @@
 
 
 (ns bin.bread-document
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]))
 
+(defn format-message [message]
+  (let [date-str (str (java.time.LocalDate/now))
+        jira-card (get message :jira-card "")
+        content (get message :content "")]
+    (str/join " - " [date-str message])))
 
 (defn add-crumb [message]
-  (println "crumb added")
   (try
     (with-open [file (io/writer "document.md" :append true)]
-      (.write file (str "\n- " message)))
+      (.write file (str "\n- " (format-message message))))
     (println "Crumb added successfully!")
     (catch Exception e
       (println "Error adding crumb:" (.getMessage e))))
