@@ -3,6 +3,6 @@
 
 Usage:
 
-bread-document new crumb "I did something cool today"
+`bread-document new crumb "I did something cool today"`
 
 
